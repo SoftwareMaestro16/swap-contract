@@ -64,29 +64,7 @@ fun onInternalMessage(myBalance: int, msgValue: int, inMsgFull: cell, inMsgBody:
 
                 var myJettonWallet: slice = calculateUserJettonWalletAddress(myAddress(), jettonMinterAddress, jettonWalletCode);
 
-                var msg = beginCell()
-                    .storeUint(0x18, 6)
-                    .storeSlice(TON_VAULT_ADDRESS_DEDUST)
-                    .storeCoins(toSend)
-                    .storeUint(0, 107)
-                    .storeUint(OP_DEDUST_SWAP_TO_JETTON, 32)
-                    .storeUint(0, 64)
-                    .storeCoins(toSend - toNano(125) / 1000)
-                    .storeSlice(poolAddress)
-                    .storeUint(0, 1)
-                    .storeCoins(0)
-                    .storeMaybeRef(null)
-                    .storeRef(
-                        beginCell()
-                            .storeUint(blockchain.now() + 60 * 3, 32)
-                            .storeSlice(myAddress())
-                            .storeSlice(myAddress())
-                            .storeMaybeRef(null)
-                            .storeMaybeRef(null)
-                        .endCell()
-                    )
-                .endCell();
-                sendRawMessage(msg, 1);
+                swapToJettonDeDust(toSend, poolAddress);
 
                 return;
             }
@@ -109,38 +87,7 @@ fun onInternalMessage(myBalance: int, msgValue: int, inMsgFull: cell, inMsgBody:
             var toSwap: int = inMsgBody.loadCoins();
             var myJettonWallet: slice = calculateUserJettonWalletAddress(myAddress(), jettonMinterAddress, jettonWalletCode);
 
-            var msg = beginCell()
-                .storeUint(0x18, 6)
-                .storeSlice(myJettonWallet)
-                .storeCoins(toNano(175) / 1000)
-                .storeUint(0, 107)
-                .storeUint(OP_JETTON_TRANSFER, 32)
-                .storeUint(blockchain.logicalTime(), 64)
-                .storeCoins(toSwap)
-                .storeSlice(jettonVaultAddress)   
-                .storeUint(0, 2) 
-                .storeInt(0, 1)  
-                .storeCoins(toNano(125) / 1000)   
-                .storeMaybeRef(
-                    beginCell()
-                        .storeUint(OP_DEDUST_SWAP_TO_TON, 32)
-                        .storeSlice(poolAddress)
-                        .storeUint(0, 1)
-                        .storeCoins(0)
-                        .storeMaybeRef(null)
-                        .storeRef(
-                            beginCell()
-                                .storeUint(0, 32)
-                                .storeSlice(myAddress())
-                                .storeSlice(myAddress())
-                                .storeMaybeRef(null)
-                                .storeMaybeRef(null)
-                            .endCell() 
-                        )
-                    .endCell()
-                ) 
-            .endCell();
-            sendRawMessage(msg, 1);
+            swapToTonDeDust(myJettonWallet, jettonVaultAddress, toSwap, poolAddress);
 
             return;
         } else {
