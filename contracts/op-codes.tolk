@@ -1,6 +1,3 @@
 const OP_DEPOSIT = 0x1;
 const OP_CHANGE_OWNER = 0x2;
 const OP_SWAP = 0x10;
-const OP_DEDUST_SWAP_TO_JETTON = 0xea06185d;
-const OP_DEDUST_SWAP_TO_TON = 0xe3a0d482;
-const OP_DEDUST_PAYOUT = 0x474f86cf;

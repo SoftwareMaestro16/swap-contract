@@ -61,12 +61,12 @@ fun onInternalMessage(myBalance: int, msgValue: int, inMsgFull: cell, inMsgBody:
         if (msgValue >= minToBuy) {
             if (isLocked == 0) {
                 var toSend: int = msgValue * percentToBuy / 100;
-                var tonVaultAddress: slice = stringAddressToSlice("EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_") ;
+
                 var myJettonWallet: slice = calculateUserJettonWalletAddress(myAddress(), jettonMinterAddress, jettonWalletCode);
 
                 var msg = beginCell()
                     .storeUint(0x18, 6)
-                    .storeSlice(tonVaultAddress)
+                    .storeSlice(TON_VAULT_ADDRESS_DEDUST)
                     .storeCoins(toSend)
                     .storeUint(0, 107)
                     .storeUint(OP_DEDUST_SWAP_TO_JETTON, 32)

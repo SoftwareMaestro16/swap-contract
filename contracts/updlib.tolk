@@ -144,10 +144,14 @@ const OP_LOCK = 0x878f9b0e;
 const OP_UNLOCK = 0x6ae4b0ef;
 const OP_INCREMENT = 0x5588464e;
 const OP_DECREMENT = 0xf9adbd4f;
+const OP_DEDUST_SWAP_TO_JETTON = 0xea06185d;
+const OP_DEDUST_SWAP_TO_TON = 0xe3a0d482;
+const OP_DEDUST_PAYOUT = 0x474f86cf;
 
 /* OTHER */
 
 const BURN_ADDRESS = stringAddressToSlice("EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c");
+const TON_VAULT_ADDRESS_DEDUST = stringAddressToSlice("EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_");
 const WORKCHAIN = 0;
 const ONE_TON = 1000000000;
 const FIVE_CENT_TON = 50000000; // 0.05 
@@ -475,4 +479,75 @@ fun addComment(comment: slice): cell {
         .storeUint(0, 32)
         .storeSlice(comment)
     .endCell();
+}
+
+@inline
+fun swapToJettonDeDust(
+    toSend: int,
+    poolAddress: slice,
+) {
+    var msg = beginCell()
+        .storeUint(0x18, 6)
+        .storeSlice(TON_VAULT_ADDRESS_DEDUST)
+        .storeCoins(toSend)
+        .storeUint(0, 107)
+        .storeUint(OP_DEDUST_SWAP_TO_JETTON, 32)
+        .storeUint(0, 64)
+        .storeCoins(toSend - toNano(125) / 1000)
+        .storeSlice(poolAddress)
+        .storeUint(0, 1)
+        .storeCoins(0)
+        .storeMaybeRef(null)
+        .storeRef(
+            beginCell()
+                .storeUint(blockchain.now() + 60 * 3, 32)
+                .storeSlice(myAddress())
+                .storeSlice(myAddress())
+                .storeMaybeRef(null)
+                .storeMaybeRef(null)
+            .endCell()
+        )
+    .endCell();
+    sendRawMessage(msg, 1);
+}
+
+@inline
+fun swapToTonDeDust(
+    myJettonWallet: slice,
+    jettonVaultAddress: slice,
+    toSwap: int,
+    poolAddress: slice,
+) {
+    var msg = beginCell()
+        .storeUint(0x18, 6)
+        .storeSlice(myJettonWallet)
+        .storeCoins(toNano(175) / 1000)
+        .storeUint(0, 107)
+        .storeUint(OP_JETTON_TRANSFER, 32)
+        .storeUint(blockchain.logicalTime(), 64)
+        .storeCoins(toSwap)
+        .storeSlice(jettonVaultAddress)   
+        .storeUint(0, 2) 
+        .storeInt(0, 1)  
+        .storeCoins(toNano(125) / 1000)   
+        .storeMaybeRef(
+            beginCell()
+                .storeUint(OP_DEDUST_SWAP_TO_TON, 32)
+                .storeSlice(poolAddress)
+                .storeUint(0, 1)
+                .storeCoins(0)
+                .storeMaybeRef(null)
+                .storeRef(
+                    beginCell()
+                        .storeUint(0, 32)
+                        .storeSlice(myAddress())
+                        .storeSlice(myAddress())
+                        .storeMaybeRef(null)
+                        .storeMaybeRef(null)
+                    .endCell() 
+                )
+            .endCell()
+        ) 
+    .endCell();
+    sendRawMessage(msg, 1);
 }
